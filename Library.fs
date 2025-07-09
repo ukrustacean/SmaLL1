@@ -78,21 +78,26 @@ module Grammar =
     let withRule r g = { g with Rules = r :: g.Rules }
 
     let lex (skips: Pattern list) (terms: Terminal list) (input: string) =
-        let skips = skips |> List.map (fun pat -> Pattern.matcher pat)
+        let skips = skips |> List.map Pattern.matcher
 
-        let rec helper leftover (output: Token list) =
-            if leftover = "" then
-                output
-            else
-                let skipped = skips |> List.tryPick (fun f -> f leftover |> Option.map snd)
-                let parsed = terms |> List.tryPick (Terminal.parsePrefix leftover)
+        // I hate imperative code either but here
+        // it was just cleaner to write this way
+        let mutable leftover = input
+        let mutable output = []
 
-                match skipped with
-                | None ->
-                    match parsed with
-                    // TODO: add error handling as this is not normal exit point for lexer
-                    | None -> output
-                    | Some(t, leftover) -> helper leftover <| t :: output
-                | Some s -> helper s output
+        while leftover <> "" do
+            let skipped = skips |> List.tryPick (fun f -> f leftover |> Option.map snd)
+            let parsed = terms |> List.tryPick (Terminal.parsePrefix leftover)
 
-        helper input []
+            match skipped, parsed with
+            | Some s, None ->
+                leftover <- s
+            | None, Some(t, s) ->
+                leftover <- s
+                output <- t :: output
+
+            // TODO: add error handling as this is not normal exit point for lexer
+            | Some _, Some _ -> failwith "Token pattern matches skip pattern"
+            | None, None -> failwith "Could not parse the next token"
+
+        output
