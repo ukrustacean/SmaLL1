@@ -1,0 +1,6 @@
+obj/
+bin/
+.idea/
+SmaLL1.Tests/bin/
+SmaLL1.Tests/obj/
+*.DotSettings.user
