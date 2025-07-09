@@ -40,14 +40,25 @@ module Pattern =
     let skipPattern pat s =
         matcher pat s |> Option.map snd |> Option.defaultValue s
 
-type Terminal = { Name: string; Pattern: Pattern }
+type Token = { Name: string; Value: string }
+
+type Terminal = { Name: string; Matcher: Matcher }
 
 module Terminal =
-    let RegexTerminal n r = { Name = n; Pattern = RegExp r }
-    let SimpleTerminal n s = { Name = n; Pattern = Simple s }
-    let CustomTerminal n f = { Name = n; Pattern = Custom f }
+    let RegexTerminal n r =
+        { Name = n
+          Matcher = Pattern.matcher <| RegExp r }
 
-    let matcher t = Pattern.matcher t.Pattern
+    let SimpleTerminal n s =
+        { Name = n
+          Matcher = Pattern.matcher <| Simple s } //List.tryPick
+
+    let CustomTerminal n f =
+        { Name = n
+          Matcher = Pattern.matcher <| Custom f }
+        
+    let parsePrefix s { Name = name; Matcher = f } =
+        f s |> Option.map (fun (value, left) -> ({ Name = name; Value = value }, left))
 
 type Rule = { Name: string; Body: string list }
 
@@ -55,8 +66,6 @@ type Grammar =
     { Skips: Pattern list
       Terminals: Terminal list
       Rules: Rule list }
-
-type Token = { Name: string; Value: string }
 
 module Grammar =
     let Empty =
@@ -69,28 +78,21 @@ module Grammar =
     let withRule r g = { g with Rules = r :: g.Rules }
 
     let lex (skips: Pattern list) (terms: Terminal list) (input: string) =
-        let skips = skips |> List.map (fun pat -> { Name = ""; Pattern = pat })
+        let skips = skips |> List.map (fun pat -> Pattern.matcher pat)
 
         let rec helper leftover (output: Token list) =
             if leftover = "" then
                 output
             else
-                let rec iterator =
-                    function
-                    | [] -> None
-                    | t :: xs ->
-                        let f = Terminal.matcher t
+                let skipped = skips |> List.tryPick (fun f -> f leftover |> Option.map snd)
+                let parsed = terms |> List.tryPick (Terminal.parsePrefix leftover)
 
-                        match f leftover with
-                        | None -> iterator xs
-                        | Some(value, leftover) -> Some({ Name = t.Name; Value = value }, leftover)
-
-                match iterator skips with
+                match skipped with
                 | None ->
-                    match iterator terms with
+                    match parsed with
                     // TODO: add error handling as this is not normal exit point for lexer
                     | None -> output
                     | Some(t, leftover) -> helper leftover <| t :: output
-                | Some(_, leftover) -> helper leftover output
+                | Some s -> helper s output
 
         helper input []

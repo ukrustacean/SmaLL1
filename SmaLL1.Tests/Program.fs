@@ -26,7 +26,7 @@ let main _ =
     result
     |> List.rev
     |> List.iter (fun { Name = name; Value = value } -> printf $"`{value}` ")
-    
+
     printfn ""
-    
+
     0
