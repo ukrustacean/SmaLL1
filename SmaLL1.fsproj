@@ -6,7 +6,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Library.fs"/>
+        <Compile Include="BasicTypes.fs" />
+        <Compile Include="Pattern.fs" />
+        <Compile Include="Terminal.fs" />
+        <Compile Include="Grammar.fs" />
     </ItemGroup>
 
 </Project>

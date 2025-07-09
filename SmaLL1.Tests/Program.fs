@@ -21,11 +21,11 @@ let main _ =
           RegexTerminal "Number" "[0-9]+"
           RegexTerminal "Ident" "[_a-zA-Z][_a-zA-Z0-9]*" ]
 
-    let result = lex skips terminals "function helloWorld(a, b, c) { return 0; }"
-
-    result
-    |> List.rev
-    |> List.iter (fun { Name = name; Value = value } -> printf $"`{value}` ")
+    // let result = lex skips terminals "function helloWorld(a, b, c) { return 0; }"
+    //
+    // result
+    // |> List.rev
+    // |> List.iter (fun { Name = name; Value = value } -> printf $"`{value}` ")
 
     printfn ""
 
