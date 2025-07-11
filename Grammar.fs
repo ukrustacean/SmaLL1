@@ -20,18 +20,17 @@ let lex (skips: Pattern list) (terms: Terminal list) (input: string) =
     let mutable output = []
 
     while leftover <> "" do
-        let skipped = skips |> List.tryPick (fun f -> f leftover |> Option.map snd)
-        let parsed = terms |> List.tryPick (Terminal.parsePrefix leftover)
+        let skipped = List.tryPick <| (|>) leftover <| skips |> Option.map snd
+        let parsed = List.tryPick <| Terminal.parsePrefix leftover <| terms
 
         match skipped, parsed with
-        | Some s, None ->
-            leftover <- s
+        | Some s, None -> leftover <- s
         | None, Some(t, s) ->
             leftover <- s
             output <- t :: output
 
         // TODO: add error handling as this is not normal exit point for lexer
         | Some _, Some _ -> failwith "Token pattern matches skip pattern"
-        | None, None -> failwith "Could not parse the next token"
+        | None, None -> failwith $"Could not parse the next token from: {leftover} \n\n Next symbol: {leftover[0]}"
 
     output
