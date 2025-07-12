@@ -1,9 +1,11 @@
 module SmaLL1.BasicTypes
 
-type Matcher = string -> (string * string) option
+open System.Text.RegularExpressions
+
+type Matcher = string * int -> (string * int) option
 
 type Pattern =
-    | RegExp of string
+    | RegExp of Regex
     | Simple of string
     | Custom of Matcher
 

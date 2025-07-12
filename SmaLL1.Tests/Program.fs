@@ -1,5 +1,6 @@
 ﻿module SmaLL1.Program
 
+open System.Text.RegularExpressions
 open SmaLL1.BasicTypes
 open SmaLL1.Terminal
 open SmaLL1.Grammar
@@ -7,8 +8,7 @@ open SmaLL1.Grammar
 let keyword s = SimpleTerminal s s
 
 let program =
-    """
-make = function(i,d) {
+    """make = function(i,d) {
     if( d == 0 ) return $array(i,null,null);
     var i2 = 2 * i;
     d -= 1;
@@ -86,12 +86,12 @@ let main' _ =
           keyword ","
           keyword "."
 
-          RegExpTerminal "String" "\"[^\"]*\""
-          RegExpTerminal "BinOp" "[!=*/<>&|^%+:-]+"
-          RegExpTerminal "HexNumber" "0x[0-9A-Fa-f]+"
-          RegExpTerminal "FloatNumber" "[0-9]+\.[0-9]*"
-          RegExpTerminal "IntNumber" "[0-9]+"
-          RegExpTerminal "Ident" "[a-zA-Z_@][a-zA-Z0-9_@]*" ]
+          RegExpTerminal "String" <| Regex "\"[^\"]*\""
+          RegExpTerminal "BinOp" <| Regex "[!=*/<>&|^%+:-]+"
+          RegExpTerminal "HexNumber" <| Regex "0x[0-9A-Fa-f]+"
+          RegExpTerminal "FloatNumber" <| Regex "[0-9]+\.[0-9]*"
+          RegExpTerminal "IntNumber" <| Regex "[0-9]+"
+          RegExpTerminal "Ident" <| Regex "[a-zA-Z_@][a-zA-Z0-9_@]*" ]
 
     let result = lex skips terminals program
 
@@ -102,3 +102,12 @@ let main' _ =
     printfn ""
 
     0
+
+
+let main'' _ =
+    let r = Regex "\G\"[^\"]*\""
+    printfn "%s" <| r.Match("\"a\" \"This is fun\"", 4).Value
+    0
+    
+[<EntryPoint>]
+let main x = main' x

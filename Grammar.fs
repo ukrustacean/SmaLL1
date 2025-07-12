@@ -16,21 +16,22 @@ let lex (skips: Pattern list) (terms: Terminal list) (input: string) =
 
     // I hate imperative code either but here
     // it was just cleaner to write this way
-    let mutable leftover = input
+    let l = input.Length
+    let mutable pos = 0
     let mutable output = []
 
-    while leftover <> "" do
-        let skipped = List.tryPick <| (|>) leftover <| skips |> Option.map snd
-        let parsed = List.tryPick <| Terminal.parsePrefix leftover <| terms
+    while pos < l do
+        let skipped = List.tryPick <| (|>) (input, pos) <| skips |> Option.map snd
+        let parsed = List.tryPick <| Terminal.parsePrefix (input, pos) <| terms
 
         match skipped, parsed with
-        | Some s, None -> leftover <- s
+        | Some s, None -> pos <- s
         | None, Some(t, s) ->
-            leftover <- s
+            pos <- s
             output <- t :: output
 
-        // TODO: add error handling as this is not normal exit point for lexer
-        | Some _, Some _ -> failwith "Token pattern matches skip pattern"
-        | None, None -> failwith $"Could not parse the next token from: {leftover} \n\n Next symbol: {leftover[0]}"
+        // TODO: add error handling as this is not a normal exit point for lexer
+        | Some p, Some ({ Name = name }, _) -> failwith $"Token pattern matches skip pattern: {p}"
+        | None, None -> failwith $"Could not parse the next token from position: {pos} \n\n Next symbol: {input[pos..]}"
 
     output
