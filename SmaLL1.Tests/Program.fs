@@ -66,7 +66,6 @@ let main' _ =
           keyword "else"
           keyword "try"
           keyword "catch"
-          keyword "return"
           keyword "break"
           keyword "continue"
           keyword "switch"
@@ -101,7 +100,7 @@ let main' _ =
 
     printfn ""
 
-    0
+    0 
 
 
 let main'' _ =
