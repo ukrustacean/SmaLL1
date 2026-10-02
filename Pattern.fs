@@ -11,10 +11,12 @@ let private simpleMatch (pat: string) (s: string, pos: int) =
     else
         None
 
-let private regexpMatch (regex: Regex) (s: string, pos: int) =
+let private regexpMatch (regex: Regex) =
     let r = Regex <| "\G" + regex.ToString()
-    let v = r.Match(s, pos).Value
-    if v = "" then None else Some(v, v.Length + pos)
+
+    fun (s, pos) ->
+        let v = r.Match(s, pos).Value
+        if v = "" then None else Some(v, v.Length + pos)
 
 let private customMatch f : Matcher = f
 
