@@ -5,6 +5,8 @@ open SmaLL1.BasicTypes
 open SmaLL1.Terminal
 open SmaLL1.Grammar
 
+open FSharp.Data.UnitSystems.SI.UnitNames
+
 let keyword s = SimpleTerminal s s
 
 let program =
@@ -92,7 +94,9 @@ let main' _ =
           RegExpTerminal "IntNumber" <| Regex "[0-9]+"
           RegExpTerminal "Ident" <| Regex "[a-zA-Z_@][a-zA-Z0-9_@]*" ]
 
-    let result = lex skips terminals program
+    let grammar = Empty |> withSkips skips |> withTerminals terminals
+    
+    let result = grammar |> lex program
 
     result
     |> List.rev

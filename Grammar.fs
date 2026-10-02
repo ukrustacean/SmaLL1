@@ -1,5 +1,6 @@
 module SmaLL1.Grammar
 
+open System.Linq
 open SmaLL1.BasicTypes
 
 let Empty =
@@ -11,8 +12,13 @@ let withSkip s g = { g with Skips = s :: g.Skips }
 let withTerminal t g = { g with Terminals = t :: g.Terminals }
 let withRule r g = { g with Rules = r :: g.Rules }
 
-let lex (skips: Pattern list) (terms: Terminal list) (input: string) =
-    let skips = skips |> List.map Pattern.matcher
+let withSkips s g = { g with Skips = List.ofSeq <| g.Skips.Concat(s) }
+let withTerminals t g = { g with Terminals = List.ofSeq <| g.Terminals.Concat(t) }
+let withRules r g = { g with Rules = List.ofSeq <| g.Rules.Concat(r) }
+
+
+let lex (input: string) (g: Grammar) =
+    let skips = g.Skips |> List.map Pattern.matcher
 
     // I hate imperative code either but here
     // it was just cleaner to write this way
@@ -22,7 +28,7 @@ let lex (skips: Pattern list) (terms: Terminal list) (input: string) =
 
     while pos < l do
         let skipped = List.tryPick <| (|>) (input, pos) <| skips |> Option.map snd
-        let parsed = List.tryPick <| Terminal.parsePrefix (input, pos) <| terms
+        let parsed = List.tryPick <| Terminal.parsePrefix (input, pos) <| g.Terminals
 
         match skipped, parsed with
         | Some s, None -> pos <- s
@@ -31,7 +37,7 @@ let lex (skips: Pattern list) (terms: Terminal list) (input: string) =
             output <- t :: output
 
         // TODO: add error handling as this is not a normal exit point for lexer
-        | Some p, Some ({ Name = name }, _) -> failwith $"Token pattern matches skip pattern: {p}"
+        | Some p, Some ({ Name = name }, _) -> failwith $"Token pattern `{name}` matches skip pattern `{p}`"
         | None, None -> failwith $"Could not parse the next token from position: {pos} \n\n Next symbol: {input[pos..]}"
 
     output
